@@ -8,7 +8,7 @@ TODOs, FIXMEs, todo!() macros (Rust) can now be seen as Info in the Problems pan
 
 ## Requirements
 
-VSCode only. Local only. UTF-8 files only. '\n' newlines only.
+VSCode only. Local only. UTF-8 files only.
 
 ## Extension Settings
 

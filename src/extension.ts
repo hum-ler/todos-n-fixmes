@@ -25,7 +25,8 @@ let predicates: Array<
   (value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined
 >;
 
-let newline = '\n'.charCodeAt(0);
+let lf = '\n'.charCodeAt(0);
+let cr = '\r'.charCodeAt(0);
 
 export function activate(context: vscode.ExtensionContext) {
   initSettings();
@@ -150,7 +151,7 @@ const scanFileContent = (buffer: Uint8Array<ArrayBufferLike>): vscode.Diagnostic
   let diagnostics: vscode.Diagnostic[] = [];
   let lines: number[] = [-1];
   buffer.forEach((value: number, index: number, array: Uint8Array<ArrayBufferLike>) => {
-    if (value === newline) {
+    if (value === lf) {
       lines.push(index);
       return;
     }
@@ -192,13 +193,18 @@ const firstLineFrom = (
   buffer: Uint8Array<ArrayBufferLike>,
   maxLen: number
 ): string => {
-  const eol = buffer.indexOf(newline, start);
+  const eol = buffer.indexOf(lf, start);
 
   let end = start + maxLen;
   let truncated = true;
   if (eol !== -1 && eol < end) {
     end = eol;
     truncated = false;
+  }
+
+  // Handle Windows eol.
+  if (buffer[end - 1] === cr) {
+    end -= 1;
   }
 
   return buffer.slice(start, end).toString() + (truncated ? '...' : '');
