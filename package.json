@@ -56,6 +56,7 @@
     "ui"
   ],
   "icon": "images/icon.png",
+  "license": "MIT",
   "main": "./out/extension.js",
   "name": "todos-n-fixmes",
   "publisher": "hum-ler",
