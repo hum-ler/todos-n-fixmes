@@ -8,11 +8,11 @@ import * as vscode from 'vscode';
  */
 let collection: vscode.DiagnosticCollection;
 
-let caseInsensitiveSearch = false;
+let caseInsensitiveSearch = true;
 
 let globPattern = '**/*.rs';
 
-let keywords = ['FIXME', 'TODO', 'todo!'];
+let keywords = ['FIXME', 'TODO'];
 
 let resultDisplayMaxLen = 120;
 
@@ -88,9 +88,10 @@ const initSettings = () => {
   caseInsensitiveSearch = configuration.get('caseInsensitiveSearch')!;
   globPattern = configuration.get('globPattern')!;
   keywords = configuration.get('keywords')!;
+  resultDisplayMaxLen = configuration.get('resultDisplayMaximumLength')!;
 
-  predicates = keywords.map((value: string, index: number, array: string[]) =>
-    searchPredicate(value)
+  predicates = keywords.map((value: string, _, __) =>
+    caseInsensitiveSearch ? caseInsensitiveSearchPredicate(value) : searchPredicate(value)
   );
 };
 
@@ -213,7 +214,35 @@ const firstLineFrom = (
 const searchPredicate = (
   keyword: string
 ): ((value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined) => {
+  const reversed = keyword
+    .split('')
+    .reverse()
+    .map((value: string, _, __) => value.charCodeAt(0));
+
+  return (_, index, obj) => {
+    if (index < reversed.length - 1) {
+      return undefined;
+    }
+
+    return reversed.every((charCode, reversedIndex, _) => obj[index - reversedIndex] === charCode)
+      ? reversed.length
+      : undefined;
+  };
+};
+
+/**
+ * Converts a keyword to a function that checks whether the term is found at an index in an array.
+ *
+ * @param keyword The keyword to search for.
+ * @returns The length of the keyword if it is found just before (and including) the index.
+ * undefined otherwise.
+ */
+const caseInsensitiveSearchPredicate = (
+  keyword: string
+): ((value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined) => {
   const reversed = keyword.split('').reverse();
+  const upperCase = reversed.map((value: string, _, __) => value.toUpperCase().charCodeAt(0));
+  const lowerCase = reversed.map((value: string, _, __) => value.toLowerCase().charCodeAt(0));
 
   return (_, index, obj) => {
     if (index < reversed.length - 1) {
@@ -221,7 +250,9 @@ const searchPredicate = (
     }
 
     return reversed.every(
-      (char, reversed_index, _) => obj[index - reversed_index] === char.charCodeAt(0)
+      (_, reversedIndex, __) =>
+        obj[index - reversedIndex] === upperCase[reversedIndex] ||
+        obj[index - reversedIndex] === lowerCase[reversedIndex]
     )
       ? reversed.length
       : undefined;

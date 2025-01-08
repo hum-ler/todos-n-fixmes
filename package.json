@@ -9,7 +9,7 @@
     "configuration": {
       "properties": {
         "todos-n-fixmes.caseInsensitiveSearch": {
-          "default": false,
+          "default": true,
           "description": "Ignore case when searching for keywords.",
           "type": "boolean"
         },
@@ -21,11 +21,15 @@
         "todos-n-fixmes.keywords": {
           "default": [
             "FIXME",
-            "TODO",
-            "todo!()"
+            "TODO"
           ],
           "description": "List of keywords to search for.",
           "type": "array"
+        },
+        "todos-n-fixmes.resultDisplayMaximumLength": {
+          "default": 120,
+          "description": "Maximum length of the line shown in the Problems pane when a keyword is found.",
+          "type": "integer"
         }
       },
       "title": "TODOs & FIXMEs"

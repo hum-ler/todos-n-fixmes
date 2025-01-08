@@ -14,13 +14,13 @@ VSCode only. Local only. UTF-8 files only. '\n' newlines only.
 
 This extension contributes the following settings:
 
-- `todos-n-fixmes.caseInsensitiveSearch`: Ignore case when searching for keywords. Currently not working.
+- `todos-n-fixmes.caseInsensitiveSearch`: Ignore case when searching for keywords.
 - `todos-n-fixmes.globPattern`: Defines the pattern of files to search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns).
 - `todos-n-fixmes.keywords`: List of keywords to search for.
+- `todos-n-fixmes.resultDisplayMaximumLength`: Maximum length of the line shown in the Problems pane when a keyword is found.
 
 ## Known Issues
 
-- Case-insensitive search is currently not working.
 - Keyword search does not look for word boundaries.
 
 ## Release Notes
