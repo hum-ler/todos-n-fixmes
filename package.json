@@ -1,0 +1,75 @@
+{
+  "activationEvents": [
+    "onFileSystem:file"
+  ],
+  "categories": [
+    "Other"
+  ],
+  "contributes": {
+    "configuration": {
+      "properties": {
+        "todos-n-fixmes.caseInsensitiveSearch": {
+          "default": false,
+          "description": "Ignore case when searching for keywords.",
+          "type": "boolean"
+        },
+        "todos-n-fixmes.globPattern": {
+          "default": "**/*.rs",
+          "markdownDescription": "Defines the pattern of files to search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns).",
+          "type": "string"
+        },
+        "todos-n-fixmes.keywords": {
+          "default": [
+            "FIXME",
+            "TODO",
+            "todo!()"
+          ],
+          "description": "List of keywords to search for.",
+          "type": "array"
+        }
+      },
+      "title": "TODOs & FIXMEs"
+    }
+  },
+  "dependencies": {
+    "micromatch": "^4.0.8"
+  },
+  "description": "Lists TODOs & FIXMEs in the Problems pane.",
+  "devDependencies": {
+    "@types/micromatch": "^4.0.9",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.96.0",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.1",
+    "eslint": "^9.16.0",
+    "typescript": "^5.7.2"
+  },
+  "displayName": "TODOs & FIXMEs",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "extensionKind": [
+    "ui"
+  ],
+  "icon": "images/icon.png",
+  "main": "./out/extension.js",
+  "name": "todos-n-fixmes",
+  "publisher": "hum-ler",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hum-ler/todos-n-fixmes.git"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "eslint src",
+    "pretest": "npm run compile && npm run lint",
+    "test": "vscode-test",
+    "vscode:prepublish": "npm run compile",
+    "watch": "tsc -watch -p ./"
+  },
+  "version": "0.0.1"
+}
