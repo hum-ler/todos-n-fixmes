@@ -207,14 +207,26 @@ const scanFileContent = (
         continue;
       }
 
-      const line = lines.length - 1;
-      const endCol = index - lines[lines.length - 1];
-      const startCol = endCol - searchResult;
+      // In bytes.
+      const lineNumber = lines.length - 1;
+      const lineStart = lines[lines.length - 1] + 1;
+      const keywordStart = index - searchResult + 1;
+      const keywordEnd = index + 1;
+
+      // In characters.
+      const decoder = new TextDecoder();
+      const totalCharacters = decoder.decode(buffer.slice(lineStart, keywordEnd)).length;
+      const keywordCharacters = decoder.decode(buffer.slice(keywordStart, keywordEnd)).length;
+      const startCol = totalCharacters - keywordCharacters;
+      const endCol = totalCharacters;
 
       diagnostics.push(
         new vscode.Diagnostic(
-          new vscode.Range(new vscode.Position(line, startCol), new vscode.Position(line, endCol)),
-          firstLineFrom(index - searchResult + 1, buffer, resultDisplayMaxLen),
+          new vscode.Range(
+            new vscode.Position(lineNumber, startCol),
+            new vscode.Position(lineNumber, endCol)
+          ),
+          diagnosticMessage(keywordStart, buffer, resultDisplayMaxLen),
           vscode.DiagnosticSeverity.Information
         )
       );
@@ -232,53 +244,46 @@ const scanFileContent = (
  * @param maxLen The maximum length of the generated string, ignoring the truncation ellipsis.
  * @returns The generated display string.
  */
-const firstLineFrom = (
+const diagnosticMessage = (
   start: number,
   buffer: Uint8Array<ArrayBufferLike>,
   maxLen: number
 ): string => {
+  let end = undefined;
+
   const eol = buffer.indexOf(lf, start);
-
-  let end = start + maxLen;
-  let truncated = true;
-  if (buffer.length <= end) {
-    end = buffer.length;
-    truncated = false;
-  }
-  if (eol !== -1 && eol <= end) {
-    end = eol;
-    truncated = false;
+  if (eol !== -1) {
+    end = buffer[eol - 1] === cr ? eol - 1 : eol;
   }
 
-  // Handle Windows eol.
-  if (buffer[end - 1] === cr) {
-    end -= 1;
+  let message = new TextDecoder().decode(buffer.slice(start, end));
+  if (message.length > maxLen) {
+    message = message.substring(0, maxLen) + '...';
   }
 
-  return buffer.slice(start, end).toString() + (truncated ? '...' : '');
+  return message;
 };
 
 /**
  * Converts a keyword to a function that checks whether the term is found at an index in an array.
  *
  * @param keyword The keyword to search for.
- * @returns The length of the keyword if it is found just before (and including) the index.
+ * @returns The byte length of the keyword if it is found just before (and including) the index.
  * undefined otherwise.
  */
 const searchPredicate = (
   keyword: string
 ): ((value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined) => {
-  const reversed = keyword
-    .split('')
-    .reverse()
-    .map((value: string, _, __) => value.charCodeAt(0));
+  const reversed = new TextEncoder().encode(keyword).reverse();
 
   return (_, index, obj) => {
     if (index < reversed.length - 1) {
       return undefined;
     }
 
-    return reversed.every((charCode, reversedIndex, _) => obj[index - reversedIndex] === charCode)
+    return reversed.every(
+      (reversedValue, reversedIndex, _) => obj[index - reversedIndex] === reversedValue
+    )
       ? reversed.length
       : undefined;
   };
@@ -288,27 +293,27 @@ const searchPredicate = (
  * Converts a keyword to a function that checks whether the term is found at an index in an array.
  *
  * @param keyword The keyword to search for.
- * @returns The length of the keyword if it is found just before (and including) the index.
+ * @returns The byte length of the keyword if it is found just before (and including) the index.
  * undefined otherwise.
  */
 const caseInsensitiveSearchPredicate = (
   keyword: string
 ): ((value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined) => {
-  const reversed = keyword.split('').reverse();
-  const upperCase = reversed.map((value: string, _, __) => value.toUpperCase().charCodeAt(0));
-  const lowerCase = reversed.map((value: string, _, __) => value.toLowerCase().charCodeAt(0));
+  const encoder = new TextEncoder();
+  const upperCase = encoder.encode(keyword.toUpperCase()).reverse();
+  const lowerCase = encoder.encode(keyword.toLowerCase()).reverse();
 
   return (_, index, obj) => {
-    if (index < reversed.length - 1) {
+    if (index < upperCase.length - 1) {
       return undefined;
     }
 
-    return reversed.every(
+    return upperCase.every(
       (_, reversedIndex, __) =>
         obj[index - reversedIndex] === upperCase[reversedIndex] ||
         obj[index - reversedIndex] === lowerCase[reversedIndex]
     )
-      ? reversed.length
+      ? upperCase.length
       : undefined;
   };
 };
@@ -318,7 +323,7 @@ const caseInsensitiveSearchPredicate = (
  */
 export const unitTest = {
   caseInsensitiveSearchPredicate,
-  firstLineFrom,
+  diagnosticMessage,
   scanFileContent,
   searchPredicate,
 };
