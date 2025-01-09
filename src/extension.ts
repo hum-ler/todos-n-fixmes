@@ -156,7 +156,7 @@ const updateWorkspaceDiagnostics = async (): Promise<void> => {
   const entries: Array<[vscode.Uri, vscode.Diagnostic[]]> = [];
   for (const file of files) {
     const content = await vscode.workspace.fs.readFile(file);
-    const diagnostics = scanFileContent(content);
+    const diagnostics = scanFileContent(content, predicates);
 
     if (diagnostics !== undefined) {
       entries.push([file, diagnostics]);
@@ -174,7 +174,7 @@ const updateWorkspaceDiagnostics = async (): Promise<void> => {
  */
 const updateFileDiagnostics = async (uri: vscode.Uri): Promise<void> => {
   const content = await vscode.workspace.fs.readFile(uri);
-  const diagnostics = scanFileContent(content);
+  const diagnostics = scanFileContent(content, predicates);
 
   collection.set(uri, diagnostics);
 };
@@ -183,9 +183,15 @@ const updateFileDiagnostics = async (uri: vscode.Uri): Promise<void> => {
  * Scans the given buffer for keywords.
  *
  * @param buffer The file content to search in.
+ * @param predicates The predicates to use to test for matches.
  * @returns The set of Diagnostics for this file to be set in the DiagnosticCollection.
  */
-const scanFileContent = (buffer: Uint8Array<ArrayBufferLike>): vscode.Diagnostic[] | undefined => {
+const scanFileContent = (
+  buffer: Uint8Array<ArrayBufferLike>,
+  predicates: Array<
+    (value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined
+  >
+): vscode.Diagnostic[] | undefined => {
   let diagnostics: vscode.Diagnostic[] = [];
   let lines: number[] = [-1];
   buffer.forEach((value: number, index: number, array: Uint8Array<ArrayBufferLike>) => {
@@ -305,4 +311,14 @@ const caseInsensitiveSearchPredicate = (
       ? reversed.length
       : undefined;
   };
+};
+
+/**
+ * Symbols exported for unit testing.
+ */
+export const unitTest = {
+  caseInsensitiveSearchPredicate,
+  firstLineFrom,
+  scanFileContent,
+  searchPredicate,
 };
