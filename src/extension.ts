@@ -197,7 +197,11 @@ const firstLineFrom = (
 
   let end = start + maxLen;
   let truncated = true;
-  if (eol !== -1 && eol < end) {
+  if (buffer.length <= end) {
+    end = buffer.length;
+    truncated = false;
+  }
+  if (eol !== -1 && eol <= end) {
     end = eol;
     truncated = false;
   }
