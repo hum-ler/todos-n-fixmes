@@ -8,12 +8,32 @@ import * as vscode from 'vscode';
  */
 let collection: vscode.DiagnosticCollection;
 
+/**
+ * Determines if keyword search is case insensitive.
+ *
+ * Read from the extension settings.
+ */
 let caseInsensitiveSearch = true;
 
+/**
+ * The set of files (within the workspace) to search for keywords.
+ *
+ * Read from the extension settings.
+ */
 let globPattern = '**/*.rs';
 
+/**
+ * The keywords to search for.
+ *
+ * Read from the extension settings.
+ */
 let keywords = ['FIXME', 'TODO'];
 
+/**
+ * The maximum length of the message printed to the Problems pane.
+ *
+ * Read from the extension settings.
+ */
 let resultDisplayMaxLen = 120;
 
 /**
@@ -25,14 +45,52 @@ let predicates: Array<
   (value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined
 >;
 
-let lf = '\n'.charCodeAt(0);
-let cr = '\r'.charCodeAt(0);
+/**
+ * The char code representing LF.
+ */
+const lf = '\n'.charCodeAt(0);
+
+/**
+ * The char code representing CR.
+ */
+const cr = '\r'.charCodeAt(0);
 
 export function activate(context: vscode.ExtensionContext) {
   initSettings();
 
   collection = vscode.languages.createDiagnosticCollection('todos-n-fixmes');
 
+  registerHandlers(context);
+
+  initWorkspaceDiagnostics();
+}
+
+export function deactivate() {
+  collection.dispose();
+}
+
+/**
+ * Initializes the extension configuration.
+ */
+const initSettings = () => {
+  const configuration = vscode.workspace.getConfiguration('todos-n-fixmes');
+
+  caseInsensitiveSearch = configuration.get('caseInsensitiveSearch') ?? caseInsensitiveSearch;
+  globPattern = configuration.get('globPattern') ?? globPattern;
+  keywords = configuration.get('keywords') ?? keywords;
+  resultDisplayMaxLen = configuration.get('resultDisplayMaximumLength') ?? resultDisplayMaxLen;
+
+  predicates = keywords.map((value: string, _, __) =>
+    caseInsensitiveSearch ? caseInsensitiveSearchPredicate(value) : searchPredicate(value)
+  );
+};
+
+/**
+ * Registers event handlers for the extension.
+ *
+ * @param context The extension context that will hold all the handlers.
+ */
+const registerHandlers = (context: vscode.ExtensionContext) => {
   const onDidSaveTextDocumentHandle = vscode.workspace.onDidSaveTextDocument(
     (e: vscode.TextDocument) => {
       if (pathMatchesGlobPattern(e.uri.path)) {
@@ -44,7 +102,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   const onDidCreateFilesHandle = vscode.workspace.onDidCreateFiles((e: vscode.FileCreateEvent) => {
     for (const file of e.files) {
-      updateFileDiagnostics(file);
+      if (pathMatchesGlobPattern(file.path)) {
+        updateFileDiagnostics(file);
+      }
     }
   });
   context.subscriptions.push(onDidCreateFilesHandle);
@@ -72,28 +132,6 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
   context.subscriptions.push(onDidDeleteFilesHandle);
-
-  initWorkspaceDiagnostics();
-}
-
-export function deactivate() {
-  collection.dispose();
-}
-
-/**
- * Initializes the extension configuration.
- */
-const initSettings = () => {
-  const configuration = vscode.workspace.getConfiguration('todos-n-fixmes');
-
-  caseInsensitiveSearch = configuration.get('caseInsensitiveSearch')!;
-  globPattern = configuration.get('globPattern')!;
-  keywords = configuration.get('keywords')!;
-  resultDisplayMaxLen = configuration.get('resultDisplayMaximumLength')!;
-
-  predicates = keywords.map((value: string, _, __) =>
-    caseInsensitiveSearch ? caseInsensitiveSearchPredicate(value) : searchPredicate(value)
-  );
 };
 
 /**
