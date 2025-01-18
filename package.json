@@ -6,6 +6,13 @@
     "Other"
   ],
   "contributes": {
+    "commands": [
+      {
+        "category": "TODOs & FIXMEs",
+        "command": "todos-n-fixmes.rescan-workspace",
+        "title": "Rescan Workspace"
+      }
+    ],
     "configuration": {
       "properties": {
         "todos-n-fixmes.caseInsensitiveSearch": {

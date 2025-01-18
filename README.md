@@ -19,9 +19,13 @@ This extension contributes the following settings:
 - `todos-n-fixmes.keywords`: List of keywords to search for.
 - `todos-n-fixmes.resultDisplayMaximumLength`: Maximum length of the line shown in the Problems pane when a keyword is found.
 
+This extension contributes the following commands:
+- `todos-n-fixmes.rescan-workspace`: Performs a full refresh of the search.
+
 ## Known Issues
 
 - Keyword search does not look for word boundaries.
+- Folder creation, rename or deletion will not be detected. See [issue](https://github.com/microsoft/vscode/issues/60813). As a workaround, use the "Rescan Workspace" command to refresh.
 
 ## Release Notes
 

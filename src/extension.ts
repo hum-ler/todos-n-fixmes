@@ -61,6 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
   collection = vscode.languages.createDiagnosticCollection('todos-n-fixmes');
 
   registerHandlers(context);
+  registerCommands(context);
 
   initWorkspaceDiagnostics();
 }
@@ -132,6 +133,24 @@ const registerHandlers = (context: vscode.ExtensionContext) => {
     }
   });
   context.subscriptions.push(onDidDeleteFilesHandle);
+};
+
+/**
+ * Registers commands for the extension.
+ *
+ * @param context The extension context that will hold all the handlers.
+ */
+const registerCommands = (context: vscode.ExtensionContext) => {
+  const rescanWorkspaceHandle = vscode.commands.registerCommand(
+    'todos-n-fixmes.rescan-workspace',
+    async () => {
+      await updateWorkspaceDiagnostics();
+
+      vscode.window.setStatusBarMessage('TODOs & FIXMEs: rescan complete', 5000);
+    }
+  );
+
+  context.subscriptions.push(rescanWorkspaceHandle);
 };
 
 /**
