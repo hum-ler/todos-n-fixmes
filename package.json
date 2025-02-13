@@ -21,13 +21,14 @@
           "type": "boolean"
         },
         "todos-n-fixmes.globPattern": {
-          "default": "**/*.rs",
+          "default": "{**/*.txt,**/*.md}",
           "markdownDescription": "Defines the pattern of files to search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns).",
           "type": "string"
         },
         "todos-n-fixmes.keywords": {
           "default": [
             "FIXME",
+            "PLACEHOLDER",
             "TODO"
           ],
           "description": "List of keywords to search for.",
