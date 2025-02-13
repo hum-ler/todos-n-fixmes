@@ -20,14 +20,14 @@ let caseInsensitiveSearch = true;
  *
  * Read from the extension settings.
  */
-let globPattern = '**/*.rs';
+let globPattern = '{**/*.txt,**/*.md}';
 
 /**
  * The keywords to search for.
  *
  * Read from the extension settings.
  */
-let keywords = ['FIXME', 'TODO'];
+let keywords = ['FIXME', 'PLACEHOLDER', 'TODO'];
 
 /**
  * The maximum length of the message printed to the Problems pane.
