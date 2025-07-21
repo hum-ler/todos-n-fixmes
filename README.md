@@ -29,6 +29,10 @@ This extension contributes the following commands:
 
 ## Release Notes
 
+### 0.0.2
+
+Fix issues with characters that are not normalized.
+
 ### 0.0.1
 
 Initial release for personal use.
