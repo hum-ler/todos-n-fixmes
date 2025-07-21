@@ -37,23 +37,16 @@ let keywords = ['FIXME', 'PLACEHOLDER', 'TODO'];
 let resultDisplayMaxLen = 120;
 
 /**
- * The search functions corresponding to keywords.
+ * The RegExps generated from keywords.
  *
  * Initialised in initSettings().
  */
-let predicates: Array<
-  (value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined
->;
+let regExps: RegExp[] = [];
 
 /**
- * The char code representing LF.
+ * The RegExp representing EOL.
  */
-const lf = '\n'.charCodeAt(0);
-
-/**
- * The char code representing CR.
- */
-const cr = '\r'.charCodeAt(0);
+const eol = /\r?\n/;
 
 export function activate(context: vscode.ExtensionContext) {
   initSettings();
@@ -81,8 +74,8 @@ const initSettings = () => {
   keywords = configuration.get('keywords') ?? keywords;
   resultDisplayMaxLen = configuration.get('resultDisplayMaximumLength') ?? resultDisplayMaxLen;
 
-  predicates = keywords.map((value: string, _, __) =>
-    caseInsensitiveSearch ? caseInsensitiveSearchPredicate(value) : searchPredicate(value)
+  regExps = keywords.map(
+    (value: string, _, __) => new RegExp(value, caseInsensitiveSearch ? 'i' : undefined)
   );
 };
 
@@ -170,15 +163,26 @@ const initWorkspaceDiagnostics = async (): Promise<void> => updateWorkspaceDiagn
  * Performs keyword search on all matching files in the current workspace.
  */
 const updateWorkspaceDiagnostics = async (): Promise<void> => {
-  const files = await vscode.workspace.findFiles(globPattern);
+  // Quick return if nothing to do.
+  if (regExps.length === 0) {
+    return;
+  }
 
   const entries: Array<[vscode.Uri, vscode.Diagnostic[]]> = [];
-  for (const file of files) {
-    const content = await vscode.workspace.fs.readFile(file);
-    const diagnostics = scanFileContent(content, predicates);
 
-    if (diagnostics !== undefined) {
-      entries.push([file, diagnostics]);
+  const files = await vscode.workspace.findFiles(globPattern);
+  for (const file of files) {
+    try {
+      const bytes = await vscode.workspace.fs.readFile(file);
+      const content = await vscode.workspace.decode(bytes);
+      const diagnostics = scanFileContent(content, regExps);
+
+      if (diagnostics !== undefined) {
+        entries.push([file, diagnostics]);
+      }
+    } catch (error) {
+      // Just skip over bad files.
+      console.debug(error);
     }
   }
 
@@ -192,157 +196,56 @@ const updateWorkspaceDiagnostics = async (): Promise<void> => {
  * @param uri The URI of the file to be updated.
  */
 const updateFileDiagnostics = async (uri: vscode.Uri): Promise<void> => {
-  const content = await vscode.workspace.fs.readFile(uri);
-  const diagnostics = scanFileContent(content, predicates);
+  // Quick return if nothing to do.
+  if (regExps.length === 0) {
+    return;
+  }
 
-  collection.set(uri, diagnostics);
+  try {
+    const bytes = await vscode.workspace.fs.readFile(uri);
+    const content = await vscode.workspace.decode(bytes);
+    const diagnostics = scanFileContent(content, regExps);
+
+    collection.set(uri, diagnostics);
+  } catch (error) {
+    // Just skip over bad files.
+    console.debug(error);
+  }
 };
 
 /**
- * Scans the given buffer for keywords.
+ * Scans the given file content for keywords.
  *
- * @param buffer The file content to search in.
- * @param predicates The predicates to use to test for matches.
+ * @param content The file content to search in.
+ * @param regExps The RegExps to search for in file content.
  * @returns The set of Diagnostics for this file to be set in the DiagnosticCollection.
  */
-const scanFileContent = (
-  buffer: Uint8Array<ArrayBufferLike>,
-  predicates: Array<
-    (value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined
-  >
-): vscode.Diagnostic[] | undefined => {
+const scanFileContent = (content: String, regExps: RegExp[]): vscode.Diagnostic[] | undefined => {
   let diagnostics: vscode.Diagnostic[] = [];
-  let lines: number[] = [-1];
-  buffer.forEach((value: number, index: number, array: Uint8Array<ArrayBufferLike>) => {
-    if (value === lf) {
-      lines.push(index);
-      return;
-    }
 
-    for (const predicate of predicates) {
-      const searchResult = predicate(value, index, array);
-
-      if (searchResult === undefined) {
-        continue;
+  content.split(eol).forEach((line: string, lineNumber: number, _) => {
+    regExps.forEach((regExp: RegExp, _, __) => {
+      // Only the first match will count for each line.
+      const col = line.search(regExp);
+      if (col > -1) {
+        diagnostics.push(
+          new vscode.Diagnostic(
+            new vscode.Range(
+              new vscode.Position(lineNumber, col),
+              new vscode.Position(lineNumber, col + [...regExp.source].length)
+            ),
+            line.slice(col, col + resultDisplayMaxLen),
+            vscode.DiagnosticSeverity.Information
+          )
+        );
       }
-
-      // In bytes.
-      const lineNumber = lines.length - 1;
-      const lineStart = lines[lines.length - 1] + 1;
-      const keywordStart = index - searchResult + 1;
-      const keywordEnd = index + 1;
-
-      // In characters.
-      const decoder = new TextDecoder();
-      const totalCharacters = decoder.decode(buffer.slice(lineStart, keywordEnd)).length;
-      const keywordCharacters = decoder.decode(buffer.slice(keywordStart, keywordEnd)).length;
-      const startCol = totalCharacters - keywordCharacters;
-      const endCol = totalCharacters;
-
-      diagnostics.push(
-        new vscode.Diagnostic(
-          new vscode.Range(
-            new vscode.Position(lineNumber, startCol),
-            new vscode.Position(lineNumber, endCol)
-          ),
-          diagnosticMessage(keywordStart, buffer, resultDisplayMaxLen),
-          vscode.DiagnosticSeverity.Information
-        )
-      );
-    }
+    });
   });
 
   return diagnostics.length > 0 ? diagnostics : undefined;
 };
 
 /**
- * Generates the display string for the search result.
- *
- * @param start The starting index in the buffer.
- * @param buffer The file content to generate the display string from.
- * @param maxLen The maximum length of the generated string, ignoring the truncation ellipsis.
- * @returns The generated display string.
- */
-const diagnosticMessage = (
-  start: number,
-  buffer: Uint8Array<ArrayBufferLike>,
-  maxLen: number
-): string => {
-  let end = undefined;
-
-  const eol = buffer.indexOf(lf, start);
-  if (eol !== -1) {
-    end = buffer[eol - 1] === cr ? eol - 1 : eol;
-  }
-
-  let message = new TextDecoder().decode(buffer.slice(start, end));
-  if (message.length > maxLen) {
-    message = message.substring(0, maxLen) + '...';
-  }
-
-  return message;
-};
-
-/**
- * Converts a keyword to a function that checks whether the term is found at an index in an array.
- *
- * @param keyword The keyword to search for.
- * @returns The byte length of the keyword if it is found just before (and including) the index.
- * undefined otherwise.
- */
-const searchPredicate = (
-  keyword: string
-): ((value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined) => {
-  const reversed = new TextEncoder().encode(keyword).reverse();
-
-  return (_, index, obj) => {
-    if (index < reversed.length - 1) {
-      return undefined;
-    }
-
-    return reversed.every(
-      (reversedValue, reversedIndex, _) => obj[index - reversedIndex] === reversedValue
-    )
-      ? reversed.length
-      : undefined;
-  };
-};
-
-/**
- * Converts a keyword to a function that checks whether the term is found at an index in an array.
- *
- * @param keyword The keyword to search for.
- * @returns The byte length of the keyword if it is found just before (and including) the index.
- * undefined otherwise.
- */
-const caseInsensitiveSearchPredicate = (
-  keyword: string
-): ((value: number, index: number, obj: Uint8Array<ArrayBufferLike>) => number | undefined) => {
-  const encoder = new TextEncoder();
-  const upperCase = encoder.encode(keyword.toUpperCase()).reverse();
-  const lowerCase = encoder.encode(keyword.toLowerCase()).reverse();
-
-  return (_, index, obj) => {
-    if (index < upperCase.length - 1) {
-      return undefined;
-    }
-
-    return upperCase.every(
-      (_, reversedIndex, __) =>
-        obj[index - reversedIndex] === upperCase[reversedIndex] ||
-        obj[index - reversedIndex] === lowerCase[reversedIndex]
-    )
-      ? upperCase.length
-      : undefined;
-  };
-};
-
-/**
  * Symbols exported for unit testing.
  */
-export const unitTest = {
-  caseInsensitiveSearchPredicate,
-  diagnosticMessage,
-  scanFileContent,
-  searchPredicate,
-};
+export const unitTest = { scanFileContent };
