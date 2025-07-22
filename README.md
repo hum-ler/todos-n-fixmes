@@ -8,7 +8,7 @@ TODOs, FIXMEs, todo!() macros (Rust) can now be seen as Info in the Problems pan
 
 ## Requirements
 
-VSCode only. Local only. UTF-8 files only.
+VSCode only. Local only.
 
 ## Extension Settings
 
@@ -26,6 +26,23 @@ This extension contributes the following commands:
 
 - Keyword search does not look for word boundaries.
 - Folder creation, rename or deletion will not be detected. See [issue](https://github.com/microsoft/vscode/issues/60813). As a workaround, use the "Rescan Workspace" command to refresh.
+
+## Build
+
+To compile the VSIX:
+```bash
+npx vsce package
+```
+
+To install the VSIX:
+```bash
+code --install-extension <VSIX file>
+```
+
+To run unit tests:
+```bash
+npm run test
+```
 
 ## Release Notes
 
