@@ -9,6 +9,13 @@ import * as vscode from 'vscode';
 let collection: vscode.DiagnosticCollection;
 
 /**
+ * The severity level at which to display keywords that are found.
+ *
+ * Read from the extension settings.
+ */
+let severityLevel = vscode.DiagnosticSeverity.Information;
+
+/**
  * Determines if keyword search is case insensitive.
  *
  * Read from the extension settings.
@@ -69,6 +76,22 @@ export function deactivate() {
 const initSettings = () => {
   const configuration = vscode.workspace.getConfiguration('todos-n-fixmes');
 
+  switch (configuration.get('severityLevel')) {
+    case 'Error':
+      severityLevel = vscode.DiagnosticSeverity.Error;
+      break;
+    case 'Warning':
+      severityLevel = vscode.DiagnosticSeverity.Warning;
+      break;
+    case 'Information':
+      severityLevel = vscode.DiagnosticSeverity.Information;
+      break;
+    case 'Hint':
+      severityLevel = vscode.DiagnosticSeverity.Hint;
+      break;
+    default:
+      break;
+  }
   caseInsensitiveSearch = configuration.get('caseInsensitiveSearch') ?? caseInsensitiveSearch;
   globPattern = configuration.get('globPattern') ?? globPattern;
   keywords = configuration.get('keywords') ?? keywords;
@@ -235,7 +258,7 @@ const scanFileContent = (content: String, regExps: RegExp[]): vscode.Diagnostic[
               new vscode.Position(lineNumber, col + [...regExp.source].length)
             ),
             line.slice(col, col + resultDisplayMaxLen),
-            vscode.DiagnosticSeverity.Information
+            severityLevel
           )
         );
       }

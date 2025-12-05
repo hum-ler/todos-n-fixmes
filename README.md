@@ -18,6 +18,7 @@ This extension contributes the following settings:
 - `todos-n-fixmes.globPattern`: Defines the pattern of files to search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns).
 - `todos-n-fixmes.keywords`: List of keywords to search for.
 - `todos-n-fixmes.resultDisplayMaximumLength`: Maximum length of the line shown in the Problems pane when a keyword is found.
+- `todos-n-fixmes.severityLevel`: Severity level at which to display keywords that are found.
 
 This extension contributes the following commands:
 - `todos-n-fixmes.rescan-workspace`: Performs a full refresh of the search.
@@ -45,6 +46,10 @@ npm run test
 ```
 
 ## Release Notes
+
+### 0.0.3
+
+Add setting for diagnostic message severity level.
 
 ### 0.0.2
 

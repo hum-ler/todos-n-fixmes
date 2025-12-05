@@ -38,6 +38,23 @@
           "default": 120,
           "description": "Maximum length of the line shown in the Problems pane when a keyword is found.",
           "type": "integer"
+        },
+        "todos-n-fixmes.severityLevel": {
+          "default": "Information",
+          "description": "Severity level at which to display keywords that are found.",
+          "enum": [
+            "Error",
+            "Warning",
+            "Information",
+            "Hint"
+          ],
+          "markdownEnumDescriptions": [
+            "Message appears in the Problems pane. Keyword is highlighted in the editor. *This is advisory only, and **does not** actually fail your build!*",
+            "Message appears in the Problems pane. Keyword is highlighted in the editor.",
+            "Message appears in the Problems pane. Keyword is highlighted in the editor.",
+            "Message *does not* appear in the Problems pane. Keyword is *somewhat* highlighted in the editor."
+          ],
+          "type": "string"
         }
       },
       "title": "TODOs & FIXMEs"
@@ -84,5 +101,5 @@
     "vscode:prepublish": "npm run compile",
     "watch": "tsc -watch -p ./"
   },
-  "version": "0.0.2"
+  "version": "0.0.3"
 }
