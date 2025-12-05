@@ -48,21 +48,21 @@
   },
   "description": "Lists TODOs & FIXMEs in the Problems pane.",
   "devDependencies": {
-    "@types/micromatch": "^4.0.9",
+    "@types/micromatch": "^4.0.10",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^20.19.9",
-    "@types/vscode": "^1.102.0",
-    "@typescript-eslint/eslint-plugin": "^8.38.0",
-    "@typescript-eslint/parser": "^8.38.0",
+    "@types/node": "^24.10.1",
+    "@types/vscode": "^1.106.1",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.6.0",
-    "eslint": "^9.31.0",
-    "typescript": "^5.8.3"
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3"
   },
   "displayName": "TODOs & FIXMEs",
   "engines": {
-    "vscode": "^1.102.0"
+    "vscode": "^1.106.0"
   },
   "extensionKind": [
     "ui"
