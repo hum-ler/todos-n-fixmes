@@ -2,6 +2,8 @@
 
 All notable changes to the TODOs & FIXMEs extension will be documented in this file.
 
+### 0.0.4
+
 ### 0.0.3
 
 Add setting for diagnostic message severity level.
