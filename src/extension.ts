@@ -2,6 +2,13 @@ import { isMatch } from 'micromatch';
 import * as vscode from 'vscode';
 
 /**
+ * The OutputChannel for debugging messages (not meant for end-users).
+ *
+ * Initialised in activate().
+ */
+let log: vscode.OutputChannel;
+
+/**
  * The exclusive DiagnosticCollection for this extension.
  *
  * Initialised in activate(). Disposed in deactivate().
@@ -56,6 +63,9 @@ let regExps: RegExp[] = [];
 const eol = /\r?\n/;
 
 export function activate(context: vscode.ExtensionContext) {
+  log = vscode.window.createOutputChannel('TODOs & FIXMEs');
+  context.subscriptions.push(log);
+
   initSettings();
 
   collection = vscode.languages.createDiagnosticCollection('todos-n-fixmes');
@@ -205,7 +215,7 @@ const updateWorkspaceDiagnostics = async (): Promise<void> => {
       }
     } catch (error) {
       // Just skip over bad files.
-      console.debug(error);
+      log.appendLine(error instanceof Error ? error.stack || error.message : String(error));
     }
   }
 
@@ -232,7 +242,7 @@ const updateFileDiagnostics = async (uri: vscode.Uri): Promise<void> => {
     collection.set(uri, diagnostics);
   } catch (error) {
     // Just skip over bad files.
-    console.debug(error);
+    log.appendLine(error instanceof Error ? error.stack || error.message : String(error));
   }
 };
 
