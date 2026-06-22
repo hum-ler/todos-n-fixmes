@@ -108,7 +108,7 @@ const initSettings = () => {
   resultDisplayMaxLen = configuration.get('resultDisplayMaximumLength') ?? resultDisplayMaxLen;
 
   regExps = keywords.map(
-    (value: string, _, __) => new RegExp(value, caseInsensitiveSearch ? 'i' : undefined)
+    (value: string, _, __) => new RegExp(value, caseInsensitiveSearch ? 'i' : undefined),
   );
 };
 
@@ -123,7 +123,7 @@ const registerHandlers = (context: vscode.ExtensionContext) => {
       if (pathMatchesGlobPattern(e.uri.path)) {
         updateFileDiagnostics(e.uri);
       }
-    }
+    },
   );
   context.subscriptions.push(onDidSaveTextDocumentHandle);
 
@@ -173,7 +173,7 @@ const registerCommands = (context: vscode.ExtensionContext) => {
       await updateWorkspaceDiagnostics();
 
       vscode.window.setStatusBarMessage('TODOs & FIXMEs: rescan complete', 5000);
-    }
+    },
   );
 
   context.subscriptions.push(rescanWorkspaceHandle);
@@ -265,11 +265,11 @@ const scanFileContent = (content: String, regExps: RegExp[]): vscode.Diagnostic[
           new vscode.Diagnostic(
             new vscode.Range(
               new vscode.Position(lineNumber, col),
-              new vscode.Position(lineNumber, col + [...regExp.source].length)
+              new vscode.Position(lineNumber, col + [...regExp.source].length),
             ),
             line.slice(col, col + resultDisplayMaxLen),
-            severityLevel
-          )
+            severityLevel,
+          ),
         );
       }
     });

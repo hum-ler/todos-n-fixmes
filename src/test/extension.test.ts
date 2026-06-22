@@ -12,16 +12,16 @@ suite('Extension Test Suite', () => {
       new vscode.Diagnostic(
         new vscode.Range(new vscode.Position(1, 1), new vscode.Position(1, 5)),
         'TODOX',
-        vscode.DiagnosticSeverity.Information
-      )
+        vscode.DiagnosticSeverity.Information,
+      ),
     );
     assert.deepStrictEqual(
       actual![1],
       new vscode.Diagnostic(
         new vscode.Range(new vscode.Position(2, 1), new vscode.Position(2, 5)),
         'todoX',
-        vscode.DiagnosticSeverity.Information
-      )
+        vscode.DiagnosticSeverity.Information,
+      ),
     );
 
     actual = unitTest.scanFileContent('\r\nXTODOX\r\nXtodoX\r\n', [/TODO/i]);
@@ -32,16 +32,16 @@ suite('Extension Test Suite', () => {
       new vscode.Diagnostic(
         new vscode.Range(new vscode.Position(1, 1), new vscode.Position(1, 5)),
         'TODOX',
-        vscode.DiagnosticSeverity.Information
-      )
+        vscode.DiagnosticSeverity.Information,
+      ),
     );
     assert.deepStrictEqual(
       actual![1],
       new vscode.Diagnostic(
         new vscode.Range(new vscode.Position(2, 1), new vscode.Position(2, 5)),
         'todoX',
-        vscode.DiagnosticSeverity.Information
-      )
+        vscode.DiagnosticSeverity.Information,
+      ),
     );
 
     actual = unitTest.scanFileContent('XTODOXfixmeXTODOX', [/FIXME/i, /TODO/i]);
@@ -52,16 +52,16 @@ suite('Extension Test Suite', () => {
       new vscode.Diagnostic(
         new vscode.Range(new vscode.Position(0, 6), new vscode.Position(0, 11)),
         'fixmeXTODOX',
-        vscode.DiagnosticSeverity.Information
-      )
+        vscode.DiagnosticSeverity.Information,
+      ),
     );
     assert.deepStrictEqual(
       actual![1],
       new vscode.Diagnostic(
         new vscode.Range(new vscode.Position(0, 1), new vscode.Position(0, 5)),
         'TODOXfixmeXTODOX',
-        vscode.DiagnosticSeverity.Information
-      )
+        vscode.DiagnosticSeverity.Information,
+      ),
     );
 
     actual = unitTest.scanFileContent('xxx', [/FIXME/i, /TODO/i]);
@@ -83,8 +83,8 @@ suite('Extension Test Suite', () => {
       new vscode.Diagnostic(
         new vscode.Range(new vscode.Position(0, 1), new vscode.Position(0, 3)),
         '英文均可',
-        vscode.DiagnosticSeverity.Information
-      )
+        vscode.DiagnosticSeverity.Information,
+      ),
     );
 
     actual = unitTest.scanFileContent(input, [negativeRegExp]);
@@ -98,8 +98,8 @@ suite('Extension Test Suite', () => {
       new vscode.Diagnostic(
         new vscode.Range(new vscode.Position(0, 1), new vscode.Position(0, 3)),
         '英文均可',
-        vscode.DiagnosticSeverity.Information
-      )
+        vscode.DiagnosticSeverity.Information,
+      ),
     );
 
     actual = unitTest.scanFileContent(input, [negativeCaseInsensitiveRegExp]);
