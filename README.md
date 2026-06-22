@@ -15,7 +15,8 @@ VSCode only. Local only.
 This extension contributes the following settings:
 
 - `todos-n-fixmes.caseInsensitiveSearch`: Ignore case when searching for keywords.
-- `todos-n-fixmes.globPattern`: Defines the pattern of files to search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns).
+- `todos-n-fixmes.excludePattern`: Defines the pattern of file to exclude from the search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns). This setting has higher priority than `todos-n-fixmes.includePattern`.
+- `todos-n-fixmes.includePattern`: Defines the pattern of files to be included in the search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns).
 - `todos-n-fixmes.keywords`: List of keywords to search for.
 - `todos-n-fixmes.resultDisplayMaximumLength`: Maximum length of the line shown in the Problems pane when a keyword is found.
 - `todos-n-fixmes.severityLevel`: Severity level at which to display keywords that are found.
@@ -49,14 +50,17 @@ npm run test
 
 ### 0.0.4
 
+- Rename `globPattern` setting to `includePattern`.
+- Add `excludePattern` setting to exclude files from being scanned.
+
 ### 0.0.3
 
-Add setting for diagnostic message severity level.
+- Add `severityLevel` setting for the severity level (Error, Warning, Info) for matches to appear in the Problems pane.
 
 ### 0.0.2
 
-Fix issues with characters that are not normalized.
+- Fix issues with characters that are not normalized.
 
 ### 0.0.1
 
-Initial release for personal use.
+- Initial release for personal use.

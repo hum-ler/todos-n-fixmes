@@ -34,7 +34,14 @@ let caseInsensitiveSearch = true;
  *
  * Read from the extension settings.
  */
-let globPattern = '{**/*.txt,**/*.md}';
+let includePattern = '{**/*.txt,**/*.md}';
+
+/**
+ * The set of files (within the workspace) to exclude from searching for keywords.
+ *
+ * Read from the extension settings.
+ */
+let excludePattern: string | undefined = undefined;
 
 /**
  * The keywords to search for.
@@ -103,7 +110,10 @@ const initSettings = () => {
       break;
   }
   caseInsensitiveSearch = configuration.get('caseInsensitiveSearch') ?? caseInsensitiveSearch;
-  globPattern = configuration.get('globPattern') ?? globPattern;
+  includePattern = configuration.get('includePattern') ?? includePattern;
+  const rawExcludePattern = configuration.get<string>('excludePattern');
+  excludePattern =
+    rawExcludePattern && rawExcludePattern.trim() ? rawExcludePattern.trim() : excludePattern;
   keywords = configuration.get('keywords') ?? keywords;
   resultDisplayMaxLen = configuration.get('resultDisplayMaximumLength') ?? resultDisplayMaxLen;
 
@@ -180,12 +190,17 @@ const registerCommands = (context: vscode.ExtensionContext) => {
 };
 
 /**
- * Matches the given path against globPattern.
+ * Matches the given path against includePattern and excludePattern.
  *
  * @param path The path to match.
  * @returns true if path matches. false otherwise.
  */
-const pathMatchesGlobPattern = (path: string): boolean => isMatch(path, globPattern);
+const pathMatchesGlobPattern = (path: string): boolean => {
+  if (excludePattern && isMatch(path, excludePattern)) {
+    return false;
+  }
+  return isMatch(path, includePattern);
+};
 
 /**
  * Performs keyword search on all matching files in the current workspace.
@@ -203,7 +218,7 @@ const updateWorkspaceDiagnostics = async (): Promise<void> => {
 
   const entries: Array<[vscode.Uri, vscode.Diagnostic[]]> = [];
 
-  const files = await vscode.workspace.findFiles(globPattern);
+  const files = await vscode.workspace.findFiles(includePattern, excludePattern);
   for (const file of files) {
     try {
       const bytes = await vscode.workspace.fs.readFile(file);
@@ -278,7 +293,11 @@ const scanFileContent = (content: String, regExps: RegExp[]): vscode.Diagnostic[
   return diagnostics.length > 0 ? diagnostics : undefined;
 };
 
-/**
- * Symbols exported for unit testing.
- */
-export const unitTest = { scanFileContent };
+export const unitTest = {
+  scanFileContent,
+  pathMatchesGlobPattern,
+  setPatterns: (include: string, exclude: string | undefined) => {
+    includePattern = include;
+    excludePattern = exclude;
+  },
+};

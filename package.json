@@ -20,9 +20,13 @@
           "description": "Ignore case when searching for keywords.",
           "type": "boolean"
         },
-        "todos-n-fixmes.globPattern": {
+        "todos-n-fixmes.excludePattern": {
+          "markdownDescription": "Defines the pattern of file to exclude from the search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns). This setting has higher priority than `#todos-n-fixmes.includePattern#`.",
+          "type": "string"
+        },
+        "todos-n-fixmes.includePattern": {
           "default": "{**/*.txt,**/*.md}",
-          "markdownDescription": "Defines the pattern of files to search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns).",
+          "markdownDescription": "Defines the pattern of files to be included in the search. See [Glob Patterns Reference](https://code.visualstudio.com/docs/editor/glob-patterns).",
           "type": "string"
         },
         "todos-n-fixmes.keywords": {

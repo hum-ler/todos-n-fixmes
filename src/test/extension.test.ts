@@ -105,4 +105,22 @@ suite('Extension Test Suite', () => {
     actual = unitTest.scanFileContent(input, [negativeCaseInsensitiveRegExp]);
     assert.strictEqual(actual, undefined);
   });
+
+  test('excludePattern and includePattern matching', () => {
+    // 1. excludePattern is undefined, path matches includePattern.
+    unitTest.setPatterns('{**/*.txt,**/*.md}', undefined);
+    assert.strictEqual(unitTest.pathMatchesGlobPattern('src/file.txt'), true);
+    assert.strictEqual(unitTest.pathMatchesGlobPattern('src/file.md'), true);
+    assert.strictEqual(unitTest.pathMatchesGlobPattern('src/file.js'), false);
+
+    // 2. excludePattern set, matches excludePattern.
+    unitTest.setPatterns('{**/*.txt,**/*.md}', '**/exclude/**');
+    assert.strictEqual(unitTest.pathMatchesGlobPattern('src/file.txt'), true);
+    assert.strictEqual(unitTest.pathMatchesGlobPattern('src/exclude/file.txt'), false);
+    assert.strictEqual(unitTest.pathMatchesGlobPattern('exclude/file.md'), false);
+    assert.strictEqual(unitTest.pathMatchesGlobPattern('src/exclude/other/file.txt'), false);
+
+    // 3. excludePattern set, doesn't match excludePattern.
+    assert.strictEqual(unitTest.pathMatchesGlobPattern('src/other/file.txt'), true);
+  });
 });
